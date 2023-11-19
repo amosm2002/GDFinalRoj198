@@ -1,0 +1,19 @@
+# Unity generated files
+[Tt]emp/
+[Oo]bj/
+[Ll]ibrary/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]serSettings/
+
+# MemoryCaptures can get excessive in size.
+[Mm]emoryCaptures/
+
+# Asset meta data should only be ignored when the corresponding asset is also ignored
+[Aa]ssets/AssetStoreTools*
+
+# Uncomment if you have tasks that create the project's static files in wwwroot
+# The below line is ignored because it contains a wildcard, which doesn't work for file-level ignores.
+#www/
+
