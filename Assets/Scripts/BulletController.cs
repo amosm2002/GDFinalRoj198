@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BulletController : MonoBehaviour
 {
-    public float maxLifetime = 10.0f;
+    public float maxLifetime = 2.0f;
 
     void Start()
     {
@@ -13,7 +13,7 @@ public class BulletController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Asteroid"))
+        if (!collision.gameObject.CompareTag("Player"))
         {
             Destroy(gameObject);
         }

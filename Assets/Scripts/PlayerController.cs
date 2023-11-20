@@ -12,17 +12,15 @@ public class PlayerController : MonoBehaviour
     public float bulletSpeed = 10f;
     public Text livesText; 
     public int lives = 3;
-    public int GetLives()
-    {
-        return lives;
-    }
 
     private Rigidbody2D rb;
     private bool isGrounded;
+    private Transform platformParent; 
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        platformParent = transform.parent; 
         UpdateLivesDisplay(); 
     }
 
@@ -43,7 +41,7 @@ public class PlayerController : MonoBehaviour
 
     void MovePlayer()
     {
-        float moveHorizontal = Input.GetAxis("Horizontal");
+        float moveHorizontal = Input.GetAxisRaw("Horizontal");
         Vector2 movement = new Vector2(moveHorizontal, 0);
         rb.velocity = new Vector2(movement.x * speed, rb.velocity.y);
     }
@@ -64,24 +62,59 @@ public class PlayerController : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Ground" || collision.collider.tag == "MovingPlatform")
         {
             isGrounded = true;
+            if (collision.collider.tag == "MovingPlatform")
+            {
+                this.transform.SetParent(collision.transform);
+            }
         }
         else if (collision.collider.tag == "Asteroid")
         {
             HandleAsteroidCollision(collision);
         }
+        if (collision.collider.tag == "Enemy")
+        {
+            HandleEnemyCollision();
+        }
+
+        if (collision.collider.tag == "EnemyHead")
+        {
+            EnemyHealth enemyHealth = collision.gameObject.GetComponentInParent<EnemyHealth>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.TakeDamage(3);
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce / 2);
+            }
+    }
+        
     }
 
     void OnCollisionExit2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Ground" || collision.collider.tag == "MovingPlatform")
         {
             isGrounded = false;
+            if (collision.collider.tag == "MovingPlatform" && this.transform.parent == collision.transform)
+            {
+                this.transform.SetParent(platformParent); 
+            }
         }
     }
 
+    private void HandleEnemyCollision()
+    {
+        if (lives > 0)
+        {
+            lives--;
+            UpdateLivesDisplay();
+        }
+        if (lives <= 0)
+        {
+            SceneManager.LoadScene("StartMenu");
+        }
+}
     void HandleAsteroidCollision(Collision2D collision)
     {
         if (lives > 0)
@@ -102,5 +135,10 @@ public class PlayerController : MonoBehaviour
         {
             livesText.text = "Lives: " + lives;
         }
+    }
+
+    public int GetLives()
+    {
+        return lives;
     }
 }

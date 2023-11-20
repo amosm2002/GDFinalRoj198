@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 9135426320581772173}
   - component: {fileID: 3312121925006325513}
   - component: {fileID: 5521288677831989654}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Asteroid
   m_TagString: Asteroid
   m_Icon: {fileID: 0}
@@ -175,3 +175,4 @@ MonoBehaviour:
   maxSize: 1.5
   size: 1
   asteroidPrefab: {fileID: 3138942214124088464}
+  isSplit: 0

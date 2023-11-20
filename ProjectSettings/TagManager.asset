@@ -7,6 +7,9 @@ TagManager:
   - Ground
   - Bullet
   - Asteroid
+  - MovingPlatform
+  - EnemyHead
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -16,8 +19,8 @@ TagManager:
   - UI
   - Player
   - Bullet
-  - 
-  - 
+  - Ground
+  - Asteroid
   - 
   - 
   - 
