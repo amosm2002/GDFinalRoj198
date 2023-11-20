@@ -746,7 +746,7 @@ MonoBehaviour:
   speed: 5
   jumpForce: 7
   bulletPrefab: {fileID: 7346484770231595740, guid: f1f8534588ab2c44da5ea1d02c6041e6, type: 3}
-  bulletSpeed: 15
+  bulletSpeed: 50
 --- !u!114 &836527837
 MonoBehaviour:
   m_ObjectHideFlags: 0

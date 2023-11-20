@@ -7,25 +7,62 @@ public class AsteroiodController : MonoBehaviour
     private Rigidbody2D AsteroidObject;
     public float minSize = 0.5f;
     public float maxSize = 1.5f;
-    private Vector2 directionToPlayer;
-    public float lifeTime = 10.0f;
+    public float size;
+    public GameObject asteroidPrefab;
+    public bool isSplit = false; 
 
     void Start()
     {
         AsteroidObject = GetComponent<Rigidbody2D>();
 
-        float size = Random.Range(minSize, maxSize);
-        this.transform.localScale = Vector3.one * size;
-        AsteroidObject.mass = size;
+        if (!isSplit)
+        {
+            size = Random.Range(minSize, maxSize);
+            transform.localScale = Vector3.one * size;
+            AsteroidObject.mass = size;
+        }
 
-        this.transform.eulerAngles = new Vector3(0.0f, 0.0f, Random.value * 360.0f);
-
-        GameObject player = GameObject.FindGameObjectWithTag("Player"); 
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
-            directionToPlayer = (player.transform.position - transform.position).normalized;
+            Vector2 directionToPlayer = (player.transform.position - transform.position).normalized;
             AsteroidObject.AddForce(directionToPlayer * 100f); 
         }
-        Destroy(gameObject, lifeTime);
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Bullet"))
+        {
+
+            if ((size * 0.5f) >= minSize)
+            {
+                CreateSplitAsteroid(size * 0.5f);
+                CreateSplitAsteroid(size * 0.5f);
+            }
+
+            Destroy(gameObject); 
+        }
+    }
+
+    void CreateSplitAsteroid(float newSize)
+    {
+        Vector2 positionOffset = Random.insideUnitCircle * 0.5f; 
+        Vector3 newPosition = transform.position + new Vector3(positionOffset.x, positionOffset.y, 0);
+
+        GameObject newAsteroid = Instantiate(asteroidPrefab, newPosition, Quaternion.identity);
+        AsteroiodController newAsteroidController = newAsteroid.GetComponent<AsteroiodController>();
+
+        if (newAsteroidController != null)
+        {
+            newAsteroidController.size = newSize;
+            newAsteroidController.isSplit = true; 
+            newAsteroid.transform.localScale = Vector3.one * newSize;
+            Rigidbody2D rb = newAsteroid.GetComponent<Rigidbody2D>();
+            rb.mass = newSize;
+            Vector2 randomDirection = Random.insideUnitCircle.normalized;
+            rb.AddForce(randomDirection * rb.mass * 10f); 
+        }
+
     }
 }
