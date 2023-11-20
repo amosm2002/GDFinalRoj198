@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class AsteroiodController : MonoBehaviour
 {
+    public Sprite[] sprites;
+    private SpriteRenderer spriteRenderer;
     private Rigidbody2D AsteroidObject;
     public float minSize = 0.5f;
     public float maxSize = 1.5f;
@@ -13,7 +15,17 @@ public class AsteroiodController : MonoBehaviour
 
     void Start()
     {
+        spriteRenderer = GetComponent<SpriteRenderer>();
         AsteroidObject = GetComponent<Rigidbody2D>();
+
+        if (sprites.Length > 0)
+        {
+            spriteRenderer.sprite = sprites[Random.Range(0, sprites.Length)];
+        }
+        else
+        {
+            Debug.LogError("Sprites array is empty!");
+        }
 
         if (!isSplit)
         {

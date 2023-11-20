@@ -12,6 +12,9 @@ public class PlayerController : MonoBehaviour
     public float bulletSpeed = 10f;
     public Text livesText; 
     public int lives = 3;
+    private SpriteRenderer sprite;
+
+    private Animator anim;
 
     private Rigidbody2D rb;
     private bool isGrounded;
@@ -19,13 +22,16 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        sprite = GetComponent<SpriteRenderer>();
         platformParent = transform.parent; 
         UpdateLivesDisplay(); 
     }
 
     void Update()
     {
+        float dirX = Input.GetAxisRaw("Horizontal");
         MovePlayer();
 
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
@@ -36,6 +42,21 @@ public class PlayerController : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             ShootBullet();
+        }
+
+        if (dirX > 0f)
+        {
+            anim.SetBool("walking", true);
+            sprite.flipX = false;
+        }
+        else if (dirX < 0f)
+        {
+            anim.SetBool("walking", true);  
+            sprite.flipX = true;
+        }
+        else
+        {
+            anim.SetBool("walking", false);
         }
     }
 
@@ -49,12 +70,23 @@ public class PlayerController : MonoBehaviour
     void Jump()
     {
         rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+        anim.SetBool("flying", true);
     }
 
     void ShootBullet()
     {
         Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direction = (mousePosition - transform.position).normalized;
+        
+        if (mousePosition.x > transform.position.x)
+        {
+            sprite.flipX = false; 
+        }
+        else if (mousePosition.x < transform.position.x)
+        {
+            sprite.flipX = true;  
+        }
+
         GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
         Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
         bulletRb.velocity = direction * bulletSpeed;
@@ -65,6 +97,7 @@ public class PlayerController : MonoBehaviour
         if (collision.collider.tag == "Ground" || collision.collider.tag == "MovingPlatform")
         {
             isGrounded = true;
+            anim.SetBool("flying", false);
             if (collision.collider.tag == "MovingPlatform")
             {
                 this.transform.SetParent(collision.transform);
@@ -141,4 +174,5 @@ public class PlayerController : MonoBehaviour
     {
         return lives;
     }
+
 }
