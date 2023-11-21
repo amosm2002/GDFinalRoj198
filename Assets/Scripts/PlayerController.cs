@@ -13,19 +13,20 @@ public class PlayerController : MonoBehaviour
     public Text livesText; 
     public int lives = 3;
     private SpriteRenderer sprite;
-
     private Animator anim;
-
     private Rigidbody2D rb;
     private bool isGrounded;
     private Transform platformParent; 
+
+    public Vector2 respawnPosition; 
+    public float fallThreshold = -10f; 
 
     void Start()
     {
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         sprite = GetComponent<SpriteRenderer>();
-        platformParent = transform.parent; 
+        platformParent = transform.parent;
         UpdateLivesDisplay(); 
     }
 
@@ -57,6 +58,11 @@ public class PlayerController : MonoBehaviour
         else
         {
             anim.SetBool("walking", false);
+        }
+
+        if (transform.position.y < fallThreshold)
+        {
+            HandleFall();
         }
     }
 
@@ -90,6 +96,20 @@ public class PlayerController : MonoBehaviour
         GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
         Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
         bulletRb.velocity = direction * bulletSpeed;
+    }
+
+    void HandleFall()
+    {
+        transform.position = respawnPosition; 
+        if (lives > 0)
+        {
+            lives--;
+            UpdateLivesDisplay();
+        }
+        else
+        {
+            SceneManager.LoadScene("StartMenu"); 
+        }
     }
 
     void OnCollisionEnter2D(Collision2D collision)
