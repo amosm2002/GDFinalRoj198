@@ -12,14 +12,30 @@ public class PlayerController : MonoBehaviour
     public float bulletSpeed = 10f;
     public Text livesText; 
     public int lives = 3;
+    public Vector2 respawnPosition; 
+    public float fallThreshold = -10f; 
+    public AudioSource jumpSoundEffect;
+    public AudioSource shootSoundEffect;
+    public AudioSource damageSoundEffect;
+
     private SpriteRenderer sprite;
     private Animator anim;
     private Rigidbody2D rb;
     private bool isGrounded;
     private Transform platformParent; 
 
-    public Vector2 respawnPosition; 
-    public float fallThreshold = -10f; 
+    void Awake()
+    {
+        var players = FindObjectsOfType<PlayerController>();
+        if (players.Length > 1)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            DontDestroyOnLoad(gameObject);
+        }
+    }
 
     void Start()
     {
@@ -32,84 +48,58 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        float dirX = Input.GetAxisRaw("Horizontal");
-        MovePlayer();
+        HandleMovement();
+        HandleJumping();
+        HandleShooting();
+        CheckForFall();
+    }
 
+    private void HandleMovement()
+    {
+        float dirX = Input.GetAxisRaw("Horizontal");
+        Vector2 movement = new Vector2(dirX, 0);
+        rb.velocity = new Vector2(movement.x * speed, rb.velocity.y);
+
+        anim.SetBool("walking", dirX != 0);
+        if (dirX != 0) sprite.flipX = dirX < 0;
+    }
+
+    private void HandleJumping()
+    {
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            Jump();
+            jumpSoundEffect.Play();
+            rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
+            anim.SetBool("flying", true);
         }
+    }
 
+    private void HandleShooting()
+    {
         if (Input.GetMouseButtonDown(0))
         {
-            ShootBullet();
-        }
+            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 direction = (mousePosition - transform.position).normalized;
+            sprite.flipX = mousePosition.x < transform.position.x;
 
-        if (dirX > 0f)
-        {
-            anim.SetBool("walking", true);
-            sprite.flipX = false;
-        }
-        else if (dirX < 0f)
-        {
-            anim.SetBool("walking", true);  
-            sprite.flipX = true;
-        }
-        else
-        {
-            anim.SetBool("walking", false);
-        }
-
-        if (transform.position.y < fallThreshold)
-        {
-            HandleFall();
+            GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+            Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
+            bulletRb.velocity = direction * bulletSpeed;
+            shootSoundEffect.Play();
         }
     }
 
-    void MovePlayer()
+    private void CheckForFall()
     {
-        float moveHorizontal = Input.GetAxisRaw("Horizontal");
-        Vector2 movement = new Vector2(moveHorizontal, 0);
-        rb.velocity = new Vector2(movement.x * speed, rb.velocity.y);
-    }
-
-    void Jump()
-    {
-        rb.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse);
-        anim.SetBool("flying", true);
-    }
-
-    void ShootBullet()
-    {
-        Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 direction = (mousePosition - transform.position).normalized;
-        
-        if (mousePosition.x > transform.position.x)
-        {
-            sprite.flipX = false; 
-        }
-        else if (mousePosition.x < transform.position.x)
-        {
-            sprite.flipX = true;  
-        }
-
-        GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
-        bulletRb.velocity = direction * bulletSpeed;
+        if (transform.position.y < fallThreshold) HandleFall();
     }
 
     void HandleFall()
     {
         transform.position = respawnPosition; 
-        if (lives > 0)
-        {
-            lives--;
-            UpdateLivesDisplay();
-        }
-        else
-        {
-            SceneManager.LoadScene("StartMenu"); 
-        }
+        if (lives > 0) lives--;
+        UpdateLivesDisplay();
+        if (lives <= 0) SceneManager.LoadScene("YouLost"); 
     }
 
     void OnCollisionEnter2D(Collision2D collision)
@@ -118,30 +108,11 @@ public class PlayerController : MonoBehaviour
         {
             isGrounded = true;
             anim.SetBool("flying", false);
-            if (collision.collider.tag == "MovingPlatform")
-            {
-                this.transform.SetParent(collision.transform);
-            }
         }
-        else if (collision.collider.tag == "Asteroid")
+        else if (collision.collider.tag == "Asteroid" || collision.collider.tag == "Enemy")
         {
-            HandleAsteroidCollision(collision);
+            HandleCollisionWithKnockback(collision);
         }
-        if (collision.collider.tag == "Enemy")
-        {
-            HandleEnemyCollision();
-        }
-
-        if (collision.collider.tag == "EnemyHead")
-        {
-            EnemyHealth enemyHealth = collision.gameObject.GetComponentInParent<EnemyHealth>();
-            if (enemyHealth != null)
-            {
-                enemyHealth.TakeDamage(3);
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce / 2);
-            }
-    }
-        
     }
 
     void OnCollisionExit2D(Collision2D collision)
@@ -149,50 +120,37 @@ public class PlayerController : MonoBehaviour
         if (collision.collider.tag == "Ground" || collision.collider.tag == "MovingPlatform")
         {
             isGrounded = false;
-            if (collision.collider.tag == "MovingPlatform" && this.transform.parent == collision.transform)
-            {
-                this.transform.SetParent(platformParent); 
-            }
         }
     }
 
-    private void HandleEnemyCollision()
+    private void HandleCollisionWithKnockback(Collision2D collision)
     {
         if (lives > 0)
         {
             lives--;
             UpdateLivesDisplay();
+            damageSoundEffect.Play();
+
+            Vector2 knockbackDirection = (transform.position - collision.transform.position).normalized;
+            float knockbackForce = 15f; 
+            rb.AddForce(knockbackDirection * knockbackForce, ForceMode2D.Impulse);
+
+
+            if (collision.collider.tag == "Asteroid")
+            {
+                Destroy(collision.gameObject);
+            }
         }
         if (lives <= 0)
         {
-            SceneManager.LoadScene("StartMenu");
+            SceneManager.LoadScene("YouLost");
         }
-}
-    void HandleAsteroidCollision(Collision2D collision)
-    {
-        if (lives > 0)
-        {
-            lives--;
-            UpdateLivesDisplay();
-            Destroy(collision.gameObject);
-        }
-        if (lives <= 0)
-        {
-            SceneManager.LoadScene("StartMenu");
-        }
-    }  
+    }
 
     void UpdateLivesDisplay()
     {
-        if (livesText != null)
-        {
-            livesText.text = "Lives: " + lives;
-        }
+        if (livesText != null) livesText.text = "Lives: " + lives;
     }
 
-    public int GetLives()
-    {
-        return lives;
-    }
-
+    public int GetLives() => lives;
 }

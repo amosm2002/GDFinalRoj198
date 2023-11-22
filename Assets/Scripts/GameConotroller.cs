@@ -6,7 +6,6 @@ using UnityEngine.SceneManagement;
 public class GameController : MonoBehaviour
 {
     
-    private bool isFullscreen = false; 
     private bool isPaused = false;
 
     public void StartGame()
@@ -21,28 +20,30 @@ public class GameController : MonoBehaviour
     
     public void LoadTutorial()
     {
-        SceneManager.LoadScene("Tutorial");
+        var settings = FindObjectOfType<SettingsManager>();
+        if (settings != null) Destroy(settings.gameObject);
+        SceneManager.LoadScene("Settings");
     }
 
-    public void ToggleFullscreen()
-    {
-        isFullscreen = !isFullscreen;
-        if (isFullscreen)
-        {
-            Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, FullScreenMode.FullScreenWindow);
-            Debug.Log("Switched to Fullscreen Mode");
-        }
-        else
-        {
-            Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
-            Debug.Log("Switched to Windowed Mode");
-        }
-    }
 
     public void TogglePause()
     {
         isPaused = !isPaused;
         Time.timeScale = isPaused ? 0 : 1;
         Debug.Log(isPaused ? "Game Paused" : "Game Resumed");
+    }
+
+    public void RestartGame()
+    {
+        var settings = FindObjectOfType<SettingsManager>();
+        if (settings != null) Destroy(settings.gameObject);
+
+        var player = FindObjectOfType<PlayerController>();
+        if (player != null) Destroy(player.gameObject);
+
+        var scoreManager = FindObjectOfType<ScoreManager>();
+        if (scoreManager != null) Destroy(scoreManager.gameObject);
+
+        SceneManager.LoadScene("StartMenu");
     }
 }

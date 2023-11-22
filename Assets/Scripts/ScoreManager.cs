@@ -14,15 +14,24 @@ public class ScoreManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (instance != this)
+        {
+            Destroy(gameObject);
         }
     }
 
     public void AddScore(int amount)
     {
         score += amount;
-        if (scoreText != null)
-        {
-            scoreText.text = "Score: " + score;
-        }
+        UpdateScoreDisplay();
     }
+
+    private void UpdateScoreDisplay()
+    {
+        if (scoreText != null) scoreText.text = "Score: " + score;
+    }
+
+    public int GetScore() => score;
 }

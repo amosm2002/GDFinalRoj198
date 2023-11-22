@@ -22,10 +22,7 @@ public class AsteroiodController : MonoBehaviour
         {
             spriteRenderer.sprite = sprites[Random.Range(0, sprites.Length)];
         }
-        else
-        {
-            Debug.LogError("Sprites array is empty!");
-        }
+
 
         if (!isSplit)
         {

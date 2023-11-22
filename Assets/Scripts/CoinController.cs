@@ -2,14 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Coin : MonoBehaviour
+public class CoinController : MonoBehaviour
 {
+    public AudioSource collectSoundClip; 
+
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("Player"))
-        {
-            ScoreManager.instance.AddScore(1); 
-            Destroy(gameObject); 
-        }
+    {
+        collectSoundClip.Play();
+        ScoreManager.instance.AddScore(1); 
+        GetComponent<SpriteRenderer>().enabled = false;
+        GetComponent<Collider2D>().enabled = false;
+        Destroy(gameObject, collectSoundClip.clip.length); 
+    }
     }
 }

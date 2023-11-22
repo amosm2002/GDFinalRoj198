@@ -11,12 +11,10 @@ public class Fullscreen : MonoBehaviour
         if (isFullscreen)
         {
             Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, FullScreenMode.FullScreenWindow);
-            Debug.Log("Switched to Fullscreen Mode");
         }
         else
         {
             Screen.SetResolution(1280, 720, FullScreenMode.Windowed);
-            Debug.Log("Switched to Windowed Mode");
         }
     }
 }
