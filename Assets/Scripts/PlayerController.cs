@@ -24,7 +24,7 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded;
     private Transform platformParent; 
 
-    void Awake()
+    void Awake()                          
     {
         var players = FindObjectsOfType<PlayerController>();
         if (players.Length > 1)
@@ -128,6 +128,7 @@ public class PlayerController : MonoBehaviour
         if (lives > 0)
         {
             lives--;
+            livesChanged = true; 
             UpdateLivesDisplay();
             damageSoundEffect.Play();
 
@@ -147,9 +148,15 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void UpdateLivesDisplay()
+    private bool livesChanged = true;
+
+    private void UpdateLivesDisplay()
     {
-        if (livesText != null) livesText.text = "Lives: " + lives;
+        if (livesChanged && livesText != null)
+        {
+            livesText.text = "Lives: " + lives;
+            livesChanged = false;
+        }
     }
 
     public int GetLives() => lives;
